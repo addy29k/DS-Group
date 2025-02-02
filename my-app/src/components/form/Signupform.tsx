@@ -7,9 +7,11 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '..
 import { Button } from "@/components/ui/button"
 import {Input} from '../ui/input'
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
 
 const FormSchema = z.object({
-    name: z.string(),
+    username: z.string(),
     email: z.string().min(1, 'Email is required').email('Invalid email'),
     password: z
       .string()
@@ -20,19 +22,37 @@ const FormSchema = z.object({
   });
   
   const SignupForm = () => {
+  const router = useRouter();
     const form = useForm<z.infer<typeof FormSchema>>({
       resolver: zodResolver(FormSchema),
       defaultValues: {
-        name:"",
+        username:"",
         email: '',
-        password: '',
-        number:'',
+        password: ''
       },
     });
   
-    const onSubmit = (values: z.infer<typeof FormSchema>) => {
-      console.log(values);
-    };
+    const onSubmit = async (values: z.infer<typeof FormSchema>) => {
+      const response = await fetch ('/api/user',{
+        method:'POST',
+        headers:{
+          'Content-type' : 'application/json'
+        },
+        body: JSON.stringify({
+          username: values.username,
+          email: values.email,
+          password: values.password
+        })
+      })
+
+      if(response.ok) {
+        router.push ('/sign-in')
+      }
+        else{
+          console.log("Sign-up Error")
+        }
+
+      };
   
     return (
       <Form {...form}>
@@ -40,12 +60,12 @@ const FormSchema = z.object({
           <div className='space-y-2'>
           <FormField
               control={form.control}
-              name='name'
+              name='username'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>UserName</FormLabel>
                   <FormControl>
-                    <Input placeholder='What do we call you?' {...field} />
+                    <Input placeholder='Silver Rain' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -106,7 +126,7 @@ const FormSchema = z.object({
       </div>
       <p className='text-center text-sm text-gray-600 mt-2'>
         If you already have an account, please&nbsp;
-        <Link className='text-blue-500 hover:underline' href='/sign-up'>
+        <Link className='text-blue-500 hover:underline' href='/sign-in'>
           Sign in
         </Link>
       </p>
